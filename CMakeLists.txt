@@ -12,6 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   moveit_ros_planning_interface
+  moveit_visual_tools
+
 )
 
 ## System dependencies are found with CMake's conventions
@@ -110,6 +112,7 @@ catkin_package(
   roscpp 
   rospy 
   std_msgs
+  moveit_visual_tools
 
 #  DEPENDS system_lib
 )
@@ -139,6 +142,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(pick_place_node src/pick_place.cpp)
+add_executable(motion_planning_node src/motion_planning.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -151,7 +155,13 @@ add_executable(pick_place_node src/pick_place.cpp)
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(pick_place_node
+target_link_libraries(
+  pick_place_node
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(
+  motion_planning_node
   ${catkin_LIBRARIES}
 )
 

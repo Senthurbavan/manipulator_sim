@@ -3,7 +3,7 @@
 // Moveit
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/move_group_interface/move_group_interface.h>
-
+#include <moveit_visual_tools/moveit_visual_tools.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 
@@ -168,20 +168,26 @@ int main(int argc, char** argv){
     ros::AsyncSpinner spinner(1);
     spinner.start();
 
-    ROS_INFO("\n\n Pick-Place Initializing \n\n");
+    ROS_INFO("Pick-Place Initializing");
 
-    ros::WallDuration(1.0).sleep();
     moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
     moveit::planning_interface::MoveGroupInterface group_interface("panda_arm");
     group_interface.setPlanningTime(45.0);
 
+    // For visualization
+    namespace rvt = rviz_visual_tools;
+    moveit_visual_tools::MoveItVisualTools visual_tools("panda_link0");
+    visual_tools.deleteAllMarkers();
+    visual_tools.loadRemoteControl();
+
     //add collision objects
     setupEnvironmentObjects(planning_scene_interface);
     
-    ros::WallDuration(10.0).sleep();
+    // Prompt to start
+    visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to start");
 
     pick(group_interface);  
-    ros::WallDuration(1.0).sleep();
+    visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to continue");
     place(group_interface);
 
     ros::waitForShutdown();
