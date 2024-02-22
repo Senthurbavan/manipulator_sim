@@ -132,7 +132,7 @@ int main(int argc, char** argv)
   pose.header.frame_id = "panda_link0";
   pose.pose.position.x = 0.5;
   pose.pose.position.y = 0.0;
-  pose.pose.position.z = 0.68;
+  pose.pose.position.z = 0.78;
 
   tf2::Quaternion q;
   q.setRPY(0, M_PI, 3.0*M_PI_4);
