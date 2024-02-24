@@ -1,0 +1,6 @@
+<launch>
+
+<node name="move_group_planning" pkg="manipulator_sim" type="move_group_planning_node" respawn="false" output="screen">
+</node>
+
+</launch>

@@ -112,6 +112,7 @@ catkin_package(
   roscpp 
   rospy 
   std_msgs
+  moveit_ros_planning_interface
   moveit_visual_tools
 
 #  DEPENDS system_lib
@@ -143,6 +144,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(pick_place_node src/pick_place.cpp)
 add_executable(motion_planning_node src/motion_planning.cpp)
+add_executable(move_group_planning_node src/move_group_planning.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -162,6 +164,12 @@ target_link_libraries(
 
 target_link_libraries(
   motion_planning_node
+  ${catkin_LIBRARIES}
+)
+
+
+target_link_libraries(
+  move_group_planning_node
   ${catkin_LIBRARIES}
 )
 

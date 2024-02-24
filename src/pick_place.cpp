@@ -5,7 +5,7 @@
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit_visual_tools/moveit_visual_tools.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-
+#include <geometric_shapes/shape_operations.h>
 
 const double tau = 2 * M_PI;
 
@@ -162,6 +162,37 @@ void setupEnvironmentObjects(moveit::planning_interface::PlanningSceneInterface&
 }
 
 
+void setupEnvironmentObjects2(moveit::planning_interface::PlanningSceneInterface& psi)
+{
+  std::vector<moveit_msgs::CollisionObject> collision_objects;
+  collision_objects.resize(1);
+
+  Eigen::Vector3d p(1.0, 1.0, 1.0);
+  // shapes::Mesh* msh = shapes::createMeshFromResource("package://manipulator_sim/meshes/pod_lowres.stl",p);
+  shapes::Mesh* msh = shapes::createMeshFromResource("package://manipulator_sim/meshes/mailbox.dae",p);
+
+  shapes::ShapeMsg msh_msg;
+  shapes::constructMsgFromShape(msh, msh_msg);
+  shape_msgs::Mesh mesh = boost::get<shape_msgs::Mesh>(msh_msg);
+
+  collision_objects[0].id = "table3";
+  collision_objects[0].header.frame_id = "panda_link0";
+
+  collision_objects[0].meshes.resize(1);
+  collision_objects[0].meshes[0] = mesh;
+
+  collision_objects[0].mesh_poses.resize(1);
+  collision_objects[0].mesh_poses[0].position.x = 1.0;
+  collision_objects[0].mesh_poses[0].position.y = 1.0;
+  collision_objects[0].mesh_poses[0].position.z = 0.0;
+
+  collision_objects[0].operation = collision_objects[0].ADD;
+
+  psi.addCollisionObjects(collision_objects);
+
+}
+
+
 int main(int argc, char** argv){
   ros::init(argc, argv, "pick_place");
   ros::NodeHandle nh;
@@ -181,7 +212,7 @@ int main(int argc, char** argv){
   visual_tools.loadRemoteControl();
 
   //add collision objects
-  setupEnvironmentObjects(planning_scene_interface);
+  setupEnvironmentObjects2(planning_scene_interface);
   
   // Prompt to start
   visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to start");

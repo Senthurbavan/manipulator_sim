@@ -81,7 +81,7 @@ void setupEnvironmentObjects(moveit::planning_interface::PlanningSceneInterface&
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "move_group_tutorial");
+  ros::init(argc, argv, "motion_planning");
   ros::NodeHandle node_handle("~");
   ros::AsyncSpinner spinner(1);
   spinner.start();
