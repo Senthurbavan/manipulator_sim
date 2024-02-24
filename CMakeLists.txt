@@ -112,6 +112,7 @@ catkin_package(
   roscpp 
   rospy 
   std_msgs
+  moveit_ros_planning_interface
   moveit_visual_tools
 
 #  DEPENDS system_lib
