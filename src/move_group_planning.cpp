@@ -7,12 +7,14 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
+#include <geometric_shapes/shape_operations.h>
+
 #include <moveit_visual_tools/moveit_visual_tools.h>
 
 void setupEnvironmentObjects(moveit::planning_interface::PlanningSceneInterface& psi)
 {
   std::vector<moveit_msgs::CollisionObject> collision_objects;
-  collision_objects.resize(3);
+  collision_objects.resize(2);
 
   collision_objects[0].id = "table1";
   collision_objects[0].header.frame_id = "panda_link0";
@@ -20,8 +22,8 @@ void setupEnvironmentObjects(moveit::planning_interface::PlanningSceneInterface&
   collision_objects[0].primitives.resize(1);
   collision_objects[0].primitives[0].type = collision_objects[0].primitives[0].BOX;
   collision_objects[0].primitives[0].dimensions.resize(3);
-  collision_objects[0].primitives[0].dimensions[0] = 0.2;
-  collision_objects[0].primitives[0].dimensions[1] = 0.4;
+  collision_objects[0].primitives[0].dimensions[0] = 0.3;
+  collision_objects[0].primitives[0].dimensions[1] = 0.5;
   collision_objects[0].primitives[0].dimensions[2] = 0.4; 
 
   collision_objects[0].primitive_poses.resize(1);
@@ -32,51 +34,73 @@ void setupEnvironmentObjects(moveit::planning_interface::PlanningSceneInterface&
 
   collision_objects[0].operation = collision_objects[0].ADD;
 
-
-  collision_objects[1].id = "table2";
+  collision_objects[1].id = "object";
   collision_objects[1].header.frame_id = "panda_link0";
 
   collision_objects[1].primitives.resize(1);
   collision_objects[1].primitives[0].type = collision_objects[0].primitives[0].BOX;
   collision_objects[1].primitives[0].dimensions.resize(3);
-  collision_objects[1].primitives[0].dimensions[0] = 0.4;
-  collision_objects[1].primitives[0].dimensions[1] = 0.2;
-  collision_objects[1].primitives[0].dimensions[2] = 0.4; 
+  collision_objects[1].primitives[0].dimensions[0] = 0.3;
+  collision_objects[1].primitives[0].dimensions[1] = 0.02;
+  collision_objects[1].primitives[0].dimensions[2] = 0.2; 
 
   collision_objects[1].primitive_poses.resize(1);
-  collision_objects[1].primitive_poses[0].position.x = 0;
-  collision_objects[1].primitive_poses[0].position.y = 0.5;
-  collision_objects[1].primitive_poses[0].position.z = 0.2;
+  collision_objects[1].primitive_poses[0].position.x = 0.5;
+  collision_objects[1].primitive_poses[0].position.y = 0;
+  collision_objects[1].primitive_poses[0].position.z = 0.5;
   collision_objects[1].primitive_poses[0].orientation.w = 1.0;
 
   collision_objects[1].operation = collision_objects[1].ADD;
-
-  collision_objects[2].id = "object";
-  collision_objects[2].header.frame_id = "panda_link0";
-
-  collision_objects[2].primitives.resize(1);
-  collision_objects[2].primitives[0].type = collision_objects[0].primitives[0].BOX;
-  collision_objects[2].primitives[0].dimensions.resize(3);
-  collision_objects[2].primitives[0].dimensions[0] = 0.02;
-  collision_objects[2].primitives[0].dimensions[1] = 0.02;
-  collision_objects[2].primitives[0].dimensions[2] = 0.2; 
-
-  collision_objects[2].primitive_poses.resize(1);
-  collision_objects[2].primitive_poses[0].position.x = 0.5;
-  collision_objects[2].primitive_poses[0].position.y = 0;
-  collision_objects[2].primitive_poses[0].position.z = 0.5;
-  collision_objects[2].primitive_poses[0].orientation.w = 1.0;
-
-  collision_objects[2].operation = collision_objects[2].ADD;
 
   psi.addCollisionObjects(collision_objects);
 }
 
 
+void setupEnvironmentObjects2(moveit::planning_interface::PlanningSceneInterface& psi)
+{
+  std::vector<moveit_msgs::CollisionObject> collision_objects;
+  collision_objects.resize(1);
+
+  Eigen::Vector3d p(1.0, 1.0, 1.0);
+  // shapes::Mesh* msh = shapes::createMeshFromResource("package://manipulator_sim/meshes/pod_lowres.stl",p);
+  shapes::Mesh* msh = shapes::createMeshFromResource("file:///home/senthu/Gazebo_models/gazebo_models/cinder_block_2/meshes/cinder_block.dae",p);
+
+  ///home/senthu/Gazebo_models/gazebo_models/cinder_block_2/meshes
+
+  shapes::ShapeMsg msh_msg;
+  shapes::constructMsgFromShape(msh, msh_msg);
+  shape_msgs::Mesh mesh = boost::get<shape_msgs::Mesh>(msh_msg);
+
+  collision_objects[0].id = "table3";
+  collision_objects[0].header.frame_id = "panda_link0";
+
+  collision_objects[0].meshes.resize(1);
+  collision_objects[0].meshes[0] = mesh;
+
+  collision_objects[0].mesh_poses.resize(1);
+  collision_objects[0].mesh_poses[0].position.x = 1.0;
+  collision_objects[0].mesh_poses[0].position.y = 1.0;
+  collision_objects[0].mesh_poses[0].position.z = 0.0;
+
+  collision_objects[0].operation = collision_objects[0].ADD;
+
+  psi.addCollisionObjects(collision_objects);
+
+
+}
+
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "move_group_planning");
     ros::NodeHandle nh;
+    ros::NodeHandle pnh("~");
+    
+    double goal_x, goal_y, goal_z;
+    pnh.param("goal_x", goal_x, 0.5);
+    pnh.param("goal_y", goal_y, 0.0);
+    pnh.param("goal_z", goal_z, 0.78);
+
+    ROS_INFO("goalx: %f, goaly: %f, goalz: %f", goal_x, goal_y, goal_z);
 
     ros::AsyncSpinner spinner(1);
     spinner.start();
@@ -103,9 +127,9 @@ int main(int argc, char** argv)
 
     // Start the Planning
     geometry_msgs::Pose goal_pose;
-    goal_pose.position.x = 0.5;
-    goal_pose.position.y = 0.0;
-    goal_pose.position.z = 0.78;
+    goal_pose.position.x = goal_x;
+    goal_pose.position.y = goal_y;
+    goal_pose.position.z = goal_z;
 
     tf2::Quaternion q;
     q.setRPY(0, M_PI, 3.0*M_PI_4);
