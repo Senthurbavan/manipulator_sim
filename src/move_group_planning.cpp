@@ -93,6 +93,37 @@ void setupEnvironmentObjects2(moveit::planning_interface::PlanningSceneInterface
 
 }
 
+void setupPlanningSceneObject(moveit::planning_interface::PlanningSceneInterface& psi,
+                              std::string file_path,
+                              geometry_msgs::Pose pose,
+                              std::string reference_frame, 
+                              std::string name,
+                              double scale)
+{
+  std::vector<moveit_msgs::CollisionObject> collision_objects;
+  collision_objects.resize(1);
+
+  Eigen::Vector3d p(scale, scale, scale);
+  shapes::Mesh* msh = shapes::createMeshFromResource(file_path, p);
+
+  shapes::ShapeMsg msh_msg;
+  shapes::constructMsgFromShape(msh, msh_msg);
+  shape_msgs::Mesh mesh = boost::get<shape_msgs::Mesh>(msh_msg);
+
+  collision_objects[0].id = name;
+  collision_objects[0].header.frame_id = reference_frame;
+
+  collision_objects[0].meshes.resize(1);
+  collision_objects[0].meshes[0] = mesh;
+
+  collision_objects[0].mesh_poses.resize(1);
+  collision_objects[0].mesh_poses[0] = pose;
+
+  collision_objects[0].operation = collision_objects[0].ADD;
+
+  psi.addCollisionObjects(collision_objects);
+}
+
 void spawnModelGazebo(ros::ServiceClient& sc, 
                       std::string file_path,
                       geometry_msgs::Pose pose,
@@ -107,7 +138,7 @@ void spawnModelGazebo(ros::ServiceClient& sc,
   std::ifstream file(file_path);
   if(!file.is_open())
   {
-    ROS_WARN("spawnModelGazebo: could not read the model");
+    ROS_WARN("spawnModelGazebo: could not read the model: %s", file_path.c_str());
     return;
   }
   std::string fileContent((std::istreambuf_iterator<char>(file)),
@@ -129,10 +160,16 @@ void spawnModelGazebo(ros::ServiceClient& sc,
   return;
 }
 
-void setupGazeboEnvironment(ros::ServiceClient& sc)
+void setupGazeboEnvironment(moveit::planning_interface::PlanningSceneInterface& psi, 
+                            ros::ServiceClient& sc, std::string reference_frame)
 {
-  const char* homedir = getenv("HOME");
-  std::string file_path = std::string(homedir) + "/Gazebo_models/gazebo_models/cinder_block_2/model.sdf";
+  std::string dir_path = std::string(getenv("HOME")) + "/Gazebo_models/gazebo_models";
+
+  // Object 1
+  std::string file_dir_path = dir_path + "/cinder_block_2";
+
+  std::string file_sdf_path = file_dir_path + "/model.sdf";
+  std::string file_mesh_path = "file://" + file_dir_path + "/meshes/cinder_block.dae";
 
   geometry_msgs::Pose obj_pose;
   obj_pose.orientation.w = 1.0;
@@ -140,7 +177,16 @@ void setupGazeboEnvironment(ros::ServiceClient& sc)
   obj_pose.position.y = 2.0;
   obj_pose.position.z = 0.0;
 
-  spawnModelGazebo(sc, file_path, obj_pose, "panda_link0", "model1");
+  spawnModelGazebo(sc, file_sdf_path, obj_pose, reference_frame, "model1");
+  setupPlanningSceneObject(psi, file_mesh_path, obj_pose, reference_frame, "model1", 1.0);
+
+  obj_pose.orientation.w = 1.0;
+  obj_pose.position.x = 1.0;
+  obj_pose.position.y = 2.0;
+  obj_pose.position.z = 0.0;
+
+  spawnModelGazebo(sc, file_sdf_path, obj_pose, reference_frame, "model2");
+  setupPlanningSceneObject(psi, file_mesh_path, obj_pose, reference_frame, "model2", 1.0);
 
 }
 
@@ -180,8 +226,8 @@ int main(int argc, char** argv)
     visual_tools.deleteAllMarkers();
     visual_tools.loadRemoteControl();
 
-    setupGazeboEnvironment(spawnModelGazeboClient);
-    setupEnvironmentObjects(planning_scene_interface);
+    setupGazeboEnvironment(planning_scene_interface, spawnModelGazeboClient, 
+                            move_group_interface.getPlanningFrame());
 
     visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to start");
 
