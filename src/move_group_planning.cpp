@@ -8,6 +8,10 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include <geometric_shapes/shape_operations.h>
+#include <gazebo_msgs/SpawnModel.h>
+#include <cstdlib>
+#include <iostream>
+#include <fstream>
 
 #include <moveit_visual_tools/moveit_visual_tools.h>
 
@@ -89,6 +93,58 @@ void setupEnvironmentObjects2(moveit::planning_interface::PlanningSceneInterface
 
 }
 
+void spawnModelGazebo(ros::ServiceClient& sc, 
+                      std::string file_path,
+                      geometry_msgs::Pose pose,
+                      std::string reference_frame, 
+                      std::string name)
+{
+  gazebo_msgs::SpawnModel srv;
+  srv.request.initial_pose = pose;
+  srv.request.reference_frame = reference_frame;
+  srv.request.model_name = name;
+  
+  std::ifstream file(file_path);
+  if(!file.is_open())
+  {
+    ROS_WARN("spawnModelGazebo: could not read the model");
+    return;
+  }
+  std::string fileContent((std::istreambuf_iterator<char>(file)),
+                            std::istreambuf_iterator<char>());
+  file.close();
+
+  srv.request.model_xml = fileContent;
+  
+  ROS_INFO("Going to call spawn service in Gazebo with model: %s", file_path.c_str());
+
+  if(sc.call(srv))
+  {
+    ROS_INFO("Spawning Success");
+  }else
+  {
+    ROS_INFO("Spawning failed");
+  }
+  
+  return;
+}
+
+void setupGazeboEnvironment(ros::ServiceClient& sc)
+{
+  const char* homedir = getenv("HOME");
+  std::string file_path = std::string(homedir) + "/Gazebo_models/gazebo_models/cinder_block_2/model.sdf";
+
+  geometry_msgs::Pose obj_pose;
+  obj_pose.orientation.w = 1.0;
+  obj_pose.position.x = 2.0;
+  obj_pose.position.y = 2.0;
+  obj_pose.position.z = 0.0;
+
+  spawnModelGazebo(sc, file_path, obj_pose, "panda_link0", "model1");
+
+}
+
+
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "move_group_planning");
@@ -104,6 +160,9 @@ int main(int argc, char** argv)
 
     ros::AsyncSpinner spinner(1);
     spinner.start();
+
+    ros::ServiceClient spawnModelGazeboClient = nh.serviceClient<gazebo_msgs::SpawnModel>(
+                                                                "/gazebo/spawn_sdf_model");
 
     static const std::string PLANNING_GROUP = "panda_arm";
 
@@ -121,6 +180,7 @@ int main(int argc, char** argv)
     visual_tools.deleteAllMarkers();
     visual_tools.loadRemoteControl();
 
+    setupGazeboEnvironment(spawnModelGazeboClient);
     setupEnvironmentObjects(planning_scene_interface);
 
     visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to start");
