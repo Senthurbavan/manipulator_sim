@@ -26,12 +26,12 @@ void setupEnvironmentObjects(moveit::planning_interface::PlanningSceneInterface&
   collision_objects[0].primitives.resize(1);
   collision_objects[0].primitives[0].type = collision_objects[0].primitives[0].BOX;
   collision_objects[0].primitives[0].dimensions.resize(3);
-  collision_objects[0].primitives[0].dimensions[0] = 0.3;
-  collision_objects[0].primitives[0].dimensions[1] = 0.5;
+  collision_objects[0].primitives[0].dimensions[0] = 0.5;
+  collision_objects[0].primitives[0].dimensions[1] = 0.75;
   collision_objects[0].primitives[0].dimensions[2] = 0.4; 
 
   collision_objects[0].primitive_poses.resize(1);
-  collision_objects[0].primitive_poses[0].position.x = 0.5;
+  collision_objects[0].primitive_poses[0].position.x = 0.525;
   collision_objects[0].primitive_poses[0].position.y = 0;
   collision_objects[0].primitive_poses[0].position.z = 0.2;
   collision_objects[0].primitive_poses[0].orientation.w = 1.0;
@@ -46,10 +46,10 @@ void setupEnvironmentObjects(moveit::planning_interface::PlanningSceneInterface&
   collision_objects[1].primitives[0].dimensions.resize(3);
   collision_objects[1].primitives[0].dimensions[0] = 0.3;
   collision_objects[1].primitives[0].dimensions[1] = 0.02;
-  collision_objects[1].primitives[0].dimensions[2] = 0.2; 
+  collision_objects[1].primitives[0].dimensions[2] = 0.3; 
 
   collision_objects[1].primitive_poses.resize(1);
-  collision_objects[1].primitive_poses[0].position.x = 0.5;
+  collision_objects[1].primitive_poses[0].position.x = 0.525;
   collision_objects[1].primitive_poses[0].position.y = 0;
   collision_objects[1].primitive_poses[0].position.z = 0.5;
   collision_objects[1].primitive_poses[0].orientation.w = 1.0;
@@ -226,32 +226,61 @@ int main(int argc, char** argv)
     visual_tools.deleteAllMarkers();
     visual_tools.loadRemoteControl();
 
-    setupGazeboEnvironment(planning_scene_interface, spawnModelGazeboClient, 
-                            move_group_interface.getPlanningFrame());
+    // setupGazeboEnvironment(planning_scene_interface, spawnModelGazeboClient, 
+    //                         move_group_interface.getPlanningFrame());
+    
+    setupEnvironmentObjects(planning_scene_interface);
 
     visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to start");
 
     // Start the Planning
+    std::vector<geometry_msgs::Pose> waypoints;
     geometry_msgs::Pose goal_pose;
-    goal_pose.position.x = goal_x;
-    goal_pose.position.y = goal_y;
-    goal_pose.position.z = goal_z;
+    goal_pose.position.x = 0.4;
+    goal_pose.position.y = -0.375;
+    goal_pose.position.z = 0.55;
 
     tf2::Quaternion q;
     q.setRPY(0, M_PI, 3.0*M_PI_4);
     geometry_msgs::Quaternion qm = tf2::toMsg(q);
     goal_pose.orientation = qm;
+    waypoints.push_back(goal_pose);
 
-    move_group_interface.setPoseTarget(goal_pose);
+    goal_pose.position.x += 0.125;
+    goal_pose.position.y += 0.575;
+    waypoints.push_back(goal_pose);
 
-    moveit::planning_interface::MoveGroupInterface::Plan plan1;
+    // visual_tools.publishPath(waypoints, rvt::RED, rvt::SMALL);
+    visual_tools.deleteAllMarkers();
+    for(geometry_msgs::Pose point : waypoints)
+    {
+      visual_tools.publishSphere(point, rvt::YELLOW, rvt::XLARGE);
+    }
+    visual_tools.trigger();
 
-    moveit::core::MoveItErrorCode res = move_group_interface.plan(plan1);
-    ROS_INFO("Planning %s", res == moveit::core::MoveItErrorCode::SUCCESS ? "Success" : "Fail");
-    ROS_INFO("Going to execute the trajectory...");
+    for(int i=0; i<waypoints.size(); i++)
+    {
 
-    res = move_group_interface.execute(plan1);
-    ROS_INFO("Trajectory Execution %s", res == moveit::core::MoveItErrorCode::SUCCESS ? "Success" : "Fail");
+      moveit::core::RobotState current_state(*move_group_interface.getCurrentState());
+      move_group_interface.setStartState(current_state);
+
+      geometry_msgs::Pose pose = waypoints[i];
+      move_group_interface.setPoseTarget(pose);
+
+      moveit::planning_interface::MoveGroupInterface::Plan plan1;
+
+      moveit::core::MoveItErrorCode res = move_group_interface.plan(plan1);
+      ROS_INFO("Planning to waypoint %d is %s", i, res == moveit::core::MoveItErrorCode::SUCCESS ? "Success" : "Fail");
+
+      visual_tools.publishTrajectoryLine(plan1.trajectory_, joint_model_group);
+      visual_tools.trigger();
+
+      ROS_INFO("Going to execute the trajectory %d...", i);
+      res = move_group_interface.execute(plan1);
+      ROS_INFO("Trajectory %d Execution %s", i, res == moveit::core::MoveItErrorCode::SUCCESS ? "Success" : "Fail");
+    }
+    
+    ROS_INFO("Final goal reached !!!");
 
     ros::waitForShutdown();
     return 0;
