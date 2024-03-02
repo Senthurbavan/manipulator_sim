@@ -14,7 +14,7 @@
 #include <iostream>
 #include <fstream>
 
-
+static const std::string PLANNING_GROUP = "panda_arm";
 
 
 void setupEnvironmentObjects2(moveit::planning_interface::PlanningSceneInterface& psi)
@@ -334,6 +334,14 @@ void printPlannerParams(moveit::planning_interface::MoveGroupInterface& mgi)
   ROS_INFO("Goal Position Tolerance: %f", mgi.getGoalPositionTolerance());
   ROS_INFO("Goal Orientation Tolerance: %f", mgi.getGoalOrientationTolerance());
   ROS_INFO("Planning Time: %f", mgi.getPlanningTime());
+
+  ROS_INFO("%s Params", mgi.getPlannerId().c_str());
+  std::map<std::string, std::string> planner_params = mgi.getPlannerParams(mgi.getPlannerId(), 
+                                                                           PLANNING_GROUP);
+  for(const auto& param : planner_params)
+  {
+    ROS_INFO("-%s: %s", param.first.c_str(), param.second.c_str());
+  }
   
   ROS_INFO("=============================");
   ROS_INFO(" ");
@@ -341,19 +349,39 @@ void printPlannerParams(moveit::planning_interface::MoveGroupInterface& mgi)
 
 void setPlannerParams(moveit::planning_interface::MoveGroupInterface& mgi)
 {
+  std::string planner_id; 
+  std::map<std::string, std::string> planner_params;
+  
   // Global Parameters
-  //pipeline options: "ompl", "chomp", "pilz_industrial_motion_planner"
-  mgi.setPlanningPipelineId("ompl"); 
-  mgi.setPlannerId("RRT");
+  mgi.setPlanningPipelineId("ompl"); //pipeline options: "ompl", "chomp", "pilz_industrial_motion_planner"
   mgi.setNumPlanningAttempts(1); // default: 1
   mgi.setMaxVelocityScalingFactor(0.1); // default: 0.1 values: 0.0 - 1.0
   mgi.setMaxAccelerationScalingFactor(0.1); // default: 0.1 values: 0.0 - 1.0
   mgi.setGoalPositionTolerance(0.0001); // default: 1e-4
   mgi.setGoalOrientationTolerance(0.001); // default: 1e-3
   mgi.setPlanningTime(1.0); // in seconds
+  planner_params["longest_valid_segment_fraction"] = "0.005";
+  planner_params["projection_evaluator"]           = "joints(panda_joint1,panda_joint2)";
 
   //Planner Specific Parameters
 
+  // // LBKPIECE
+  // planner_id = "LBKPIECE";
+  // planner_params["border_fraction"]         = "0.9";
+  // planner_params["min_valid_path_fraction"] = "0.5";
+  // planner_params["range"]                   = "1";
+
+  // //RRT
+  // planner_id = "RRT";
+  // planner_params["goal_bias"] = "0.005";
+  // planner_params["range"]     = "1";
+
+  //RRTConnect
+  planner_id = "RRTConnect";
+  planner_params["range"] = "0";
+  
+  mgi.setPlannerId(planner_id);
+  mgi.setPlannerParams(planner_id, PLANNING_GROUP, planner_params, false);
 }
 
 int main(int argc, char** argv)
@@ -367,7 +395,7 @@ int main(int argc, char** argv)
     ros::ServiceClient spawnModelGazeboClient = nh.serviceClient<gazebo_msgs::SpawnModel>(
                                                                 "/gazebo/spawn_sdf_model");
 
-    static const std::string PLANNING_GROUP = "panda_arm";
+    // static const std::string PLANNING_GROUP = "panda_arm";
 
     moveit::planning_interface::MoveGroupInterface move_group_interface(PLANNING_GROUP);
     moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
@@ -418,7 +446,7 @@ int main(int argc, char** argv)
       success = res == moveit::core::MoveItErrorCode::SUCCESS ? true : false;
       if(success)
       {
-        ROS_INFO("Planning to waypoint %d is Success with planning time: %fs", i, plan1.planning_time_);
+        ROS_INFO("Planning to waypoint %d is Success with planning time: %f seconds", i, plan1.planning_time_);
       }
       else{
         ROS_INFO("Planning to waypoint %d Failed", i);
