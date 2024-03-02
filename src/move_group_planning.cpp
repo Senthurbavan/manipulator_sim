@@ -1,5 +1,3 @@
-#include <ros/ros.h>
-
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit_msgs/CollisionObject.h>
@@ -9,11 +7,14 @@
 
 #include <geometric_shapes/shape_operations.h>
 #include <gazebo_msgs/SpawnModel.h>
+#include <moveit_visual_tools/moveit_visual_tools.h>
+
+#include <ros/ros.h>
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
 
-#include <moveit_visual_tools/moveit_visual_tools.h>
+
 
 
 void setupEnvironmentObjects2(moveit::planning_interface::PlanningSceneInterface& psi)
@@ -217,7 +218,143 @@ void setupPlanningScene1(moveit::planning_interface::PlanningSceneInterface& psi
   return;
 }
 
+void setupPlanningScene2(moveit::planning_interface::PlanningSceneInterface& psi, 
+                              std::vector<geometry_msgs::Pose>& waypoints)
+{
+  std::vector<moveit_msgs::CollisionObject> collision_objects;
+  collision_objects.resize(4);
 
+  collision_objects[0].id = "box_front";
+  collision_objects[0].header.frame_id = "panda_link0";
+
+  collision_objects[0].primitives.resize(1);
+  collision_objects[0].primitives[0].type = collision_objects[0].primitives[0].BOX;
+  collision_objects[0].primitives[0].dimensions.resize(3);
+  collision_objects[0].primitives[0].dimensions[0] = 0.02;
+  collision_objects[0].primitives[0].dimensions[1] = 0.5;
+  collision_objects[0].primitives[0].dimensions[2] = 0.3; 
+
+  collision_objects[0].primitive_poses.resize(1);
+  collision_objects[0].primitive_poses[0].position.x = 0.4;
+  collision_objects[0].primitive_poses[0].position.y = 0;
+  collision_objects[0].primitive_poses[0].position.z = 0.15;
+  collision_objects[0].primitive_poses[0].orientation.w = 1.0;
+
+  collision_objects[0].operation = collision_objects[0].ADD;
+
+
+  collision_objects[1].id = "box_left";
+  collision_objects[1].header.frame_id = "panda_link0";
+
+  collision_objects[1].primitives.resize(1);
+  collision_objects[1].primitives[0].type = collision_objects[0].primitives[0].BOX;
+  collision_objects[1].primitives[0].dimensions.resize(3);
+  collision_objects[1].primitives[0].dimensions[0] = 0.36; //0.4 - 2*0.02
+  collision_objects[1].primitives[0].dimensions[1] = 0.02;
+  collision_objects[1].primitives[0].dimensions[2] = 0.3; 
+
+  collision_objects[1].primitive_poses.resize(1);
+  collision_objects[1].primitive_poses[0].position.x = 0.59;
+  collision_objects[1].primitive_poses[0].position.y = -0.24;
+  collision_objects[1].primitive_poses[0].position.z = 0.15;
+  collision_objects[1].primitive_poses[0].orientation.w = 1.0;
+
+  collision_objects[1].operation = collision_objects[1].ADD;
+
+  collision_objects[2].id = "box_right";
+  collision_objects[2].header.frame_id = "panda_link0";
+
+  collision_objects[2].primitives.resize(1);
+  collision_objects[2].primitives[0].type = collision_objects[0].primitives[0].BOX;
+  collision_objects[2].primitives[0].dimensions.resize(3);
+  collision_objects[2].primitives[0].dimensions[0] = 0.36; //0.4 - 2*0.02
+  collision_objects[2].primitives[0].dimensions[1] = 0.02;
+  collision_objects[2].primitives[0].dimensions[2] = 0.3; 
+
+  collision_objects[2].primitive_poses.resize(1);
+  collision_objects[2].primitive_poses[0].position.x = 0.59;
+  collision_objects[2].primitive_poses[0].position.y = 0.24;
+  collision_objects[2].primitive_poses[0].position.z = 0.15;
+  collision_objects[2].primitive_poses[0].orientation.w = 1.0;
+
+  collision_objects[2].operation = collision_objects[2].ADD;
+
+  collision_objects[3].id = "shelf_top";
+  collision_objects[3].header.frame_id = "panda_link0";
+
+  collision_objects[3].primitives.resize(1);
+  collision_objects[3].primitives[0].type = collision_objects[0].primitives[0].BOX;
+  collision_objects[3].primitives[0].dimensions.resize(3);
+  collision_objects[3].primitives[0].dimensions[0] = 0.5;
+  collision_objects[3].primitives[0].dimensions[1] = 0.3;
+  collision_objects[3].primitives[0].dimensions[2] = 0.02; 
+
+  collision_objects[3].primitive_poses.resize(1);
+  collision_objects[3].primitive_poses[0].position.x = 0.3;
+  collision_objects[3].primitive_poses[0].position.y = 0.75;
+  collision_objects[3].primitive_poses[0].position.z = 0.5;
+  collision_objects[3].primitive_poses[0].orientation.w = 1.0;
+
+  collision_objects[3].operation = collision_objects[3].ADD;
+
+  psi.clear();
+  psi.addCollisionObjects(collision_objects);
+
+  // std::vector<geometry_msgs::Pose> waypoints;
+  geometry_msgs::Pose goal_pose;
+  goal_pose.position.x = 0.6;
+  goal_pose.position.y = -0.05;
+  goal_pose.position.z = 0.1;
+
+  tf2::Quaternion q;
+  q.setRPY(0, M_PI, 3.0*M_PI_4);
+  geometry_msgs::Quaternion qm = tf2::toMsg(q);
+  goal_pose.orientation = qm;
+  waypoints.push_back(goal_pose);
+
+  goal_pose.position.x = 0.286;
+  goal_pose.position.y = 0.66;
+  goal_pose.position.z = 0.117;
+  goal_pose.orientation.w = 0.383;
+  goal_pose.orientation.x = -0.333;
+  goal_pose.orientation.y = 0.676;
+  goal_pose.orientation.z = 0.535;
+  waypoints.push_back(goal_pose);
+
+  return;
+}
+
+void printPlannerParams(moveit::planning_interface::MoveGroupInterface& mgi)
+{
+  ROS_INFO(" ");
+  ROS_INFO("======Printing params========");
+
+  ROS_INFO("Planning pipeline: %s", mgi.getPlanningPipelineId().c_str());
+  ROS_INFO("Planner: %s", mgi.getPlannerId().c_str());
+  ROS_INFO("Goal Position Tolerance: %f", mgi.getGoalPositionTolerance());
+  ROS_INFO("Goal Orientation Tolerance: %f", mgi.getGoalOrientationTolerance());
+  ROS_INFO("Planning Time: %f", mgi.getPlanningTime());
+  
+  ROS_INFO("=============================");
+  ROS_INFO(" ");
+}
+
+void setPlannerParams(moveit::planning_interface::MoveGroupInterface& mgi)
+{
+  // Global Parameters
+  //pipeline options: "ompl", "chomp", "pilz_industrial_motion_planner"
+  mgi.setPlanningPipelineId("ompl"); 
+  mgi.setPlannerId("RRT");
+  mgi.setNumPlanningAttempts(1); // default: 1
+  mgi.setMaxVelocityScalingFactor(0.1); // default: 0.1 values: 0.0 - 1.0
+  mgi.setMaxAccelerationScalingFactor(0.1); // default: 0.1 values: 0.0 - 1.0
+  mgi.setGoalPositionTolerance(0.0001); // default: 1e-4
+  mgi.setGoalOrientationTolerance(0.001); // default: 1e-3
+  mgi.setPlanningTime(1.0); // in seconds
+
+  //Planner Specific Parameters
+
+}
 
 int main(int argc, char** argv)
 {
@@ -246,8 +383,13 @@ int main(int argc, char** argv)
 
 
     std::vector<geometry_msgs::Pose> waypoints;
-    setupPlanningScene1(planning_scene_interface, waypoints);
     
+    setupPlanningScene2(planning_scene_interface, waypoints);
+
+    printPlannerParams(move_group_interface);
+    setPlannerParams(move_group_interface);
+    printPlannerParams(move_group_interface);
+
     // Visualize the waypoints
     visual_tools.deleteAllMarkers();
     for(geometry_msgs::Pose point : waypoints)
@@ -257,6 +399,8 @@ int main(int argc, char** argv)
     visual_tools.trigger();
     visual_tools.loadRemoteControl();
     visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to start");
+
+    bool success = true;
     
     // Plan and Execute 
     for(int i=0; i<waypoints.size(); i++)
@@ -271,17 +415,39 @@ int main(int argc, char** argv)
       moveit::planning_interface::MoveGroupInterface::Plan plan1;
 
       moveit::core::MoveItErrorCode res = move_group_interface.plan(plan1);
-      ROS_INFO("Planning to waypoint %d is %s", i, res == moveit::core::MoveItErrorCode::SUCCESS ? "Success" : "Fail");
+      success = res == moveit::core::MoveItErrorCode::SUCCESS ? true : false;
+      if(success)
+      {
+        ROS_INFO("Planning to waypoint %d is Success with planning time: %fs", i, plan1.planning_time_);
+      }
+      else{
+        ROS_INFO("Planning to waypoint %d Failed", i);
+        break;
+      }
 
       visual_tools.publishTrajectoryLine(plan1.trajectory_, joint_model_group);
       visual_tools.trigger();
 
       ROS_INFO("Going to execute the trajectory %d...", i);
       res = move_group_interface.execute(plan1);
-      ROS_INFO("Trajectory %d Execution %s", i, res == moveit::core::MoveItErrorCode::SUCCESS ? "Success" : "Fail");
+      success = res == moveit::core::MoveItErrorCode::SUCCESS ? true : false;
+      if(success)
+      {
+        ROS_INFO("Trajectory execution to waypoint %d is Success", i);
+      }
+      else{
+        ROS_INFO("Trajectory execution to waypoint %d Failed", i);
+        break;
+      }
     }
-    
-    ROS_INFO("Final goal reached !!!");
+    printPlannerParams(move_group_interface);    
+    if(success)
+    {
+      ROS_INFO("Final goal reached !!!");
+    }else
+    {
+      ROS_INFO("Failed to reach the final goal!!!");
+    }
 
     ros::waitForShutdown();
     return 0;
