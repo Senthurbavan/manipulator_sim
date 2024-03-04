@@ -133,20 +133,25 @@ void setupGazeboEnvironment(moveit::planning_interface::PlanningSceneInterface& 
 
   geometry_msgs::Pose obj_pose;
   obj_pose.orientation.w = 1.0;
-  obj_pose.position.x = 2.0;
-  obj_pose.position.y = 2.0;
+  obj_pose.position.x = 0.2;
+  obj_pose.position.y = 0.0;
   obj_pose.position.z = 0.0;
 
-  spawnModelGazebo(sc, file_sdf_path, obj_pose, reference_frame, "model1");
-  setupPlanningSceneObject(psi, file_mesh_path, obj_pose, reference_frame, "model1", 1.0);
+  spawnModelGazebo(sc, file_sdf_path, obj_pose, reference_frame, "cinder_block");
+  setupPlanningSceneObject(psi, file_mesh_path, obj_pose, reference_frame, "cinder_block", 1.0);
+
+  // Object 2
+  file_dir_path = dir_path + "/cafe_table";
+  file_sdf_path = file_dir_path + "/model.sdf";
+  file_mesh_path = "file://" + file_dir_path + "/meshes/cafe_table.dae";
 
   obj_pose.orientation.w = 1.0;
-  obj_pose.position.x = 1.0;
-  obj_pose.position.y = 2.0;
+  obj_pose.position.x = 0.85;
+  obj_pose.position.y = 0.0;
   obj_pose.position.z = 0.0;
 
-  spawnModelGazebo(sc, file_sdf_path, obj_pose, reference_frame, "model2");
-  setupPlanningSceneObject(psi, file_mesh_path, obj_pose, reference_frame, "model2", 1.0);
+  spawnModelGazebo(sc, file_sdf_path, obj_pose, reference_frame, "cafe_table");
+  setupPlanningSceneObject(psi, file_mesh_path, obj_pose, reference_frame, "cafe_table", 0.0254);
 
 }
 
@@ -354,12 +359,12 @@ void setPlannerParams(moveit::planning_interface::MoveGroupInterface& mgi)
   
   // Global Parameters
   mgi.setPlanningPipelineId("ompl"); //pipeline options: "ompl", "chomp", "pilz_industrial_motion_planner"
-  mgi.setNumPlanningAttempts(1); // default: 1
+  mgi.setNumPlanningAttempts(4); // default: 1
   mgi.setMaxVelocityScalingFactor(0.1); // default: 0.1 values: 0.0 - 1.0
   mgi.setMaxAccelerationScalingFactor(0.1); // default: 0.1 values: 0.0 - 1.0
   mgi.setGoalPositionTolerance(0.0001); // default: 1e-4
   mgi.setGoalOrientationTolerance(0.001); // default: 1e-3
-  mgi.setPlanningTime(1.0); // in seconds
+  mgi.setPlanningTime(5.0); // in seconds
   planner_params["longest_valid_segment_fraction"] = "0.005";
   planner_params["projection_evaluator"]           = "joints(panda_joint1,panda_joint2)";
 
@@ -412,7 +417,8 @@ int main(int argc, char** argv)
 
     std::vector<geometry_msgs::Pose> waypoints;
     
-    setupPlanningScene2(planning_scene_interface, waypoints);
+    // setupPlanningScene2(planning_scene_interface, waypoints);
+    setupGazeboEnvironment(planning_scene_interface, spawnModelGazeboClient, "panda_link0");
 
     printPlannerParams(move_group_interface);
     setPlannerParams(move_group_interface);
