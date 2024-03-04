@@ -197,6 +197,7 @@ void setupPlanningScene1(moveit::planning_interface::PlanningSceneInterface& psi
 
   collision_objects[1].operation = collision_objects[1].ADD;
 
+  psi.clear();
   psi.addCollisionObjects(collision_objects);
 
   // std::vector<geometry_msgs::Pose> waypoints;
@@ -415,6 +416,9 @@ void printPlannerParams(moveit::planning_interface::MoveGroupInterface& mgi)
   ROS_INFO(" ");
 }
 
+void (*planning_scenes[])(moveit::planning_interface::PlanningSceneInterface&, 
+                          std::vector<geometry_msgs::Pose>&) = 
+                          {setupPlanningScene1, setupPlanningScene2, setupPlanningScene3};
 
 int main(int argc, char** argv)
 {
@@ -433,14 +437,37 @@ int main(int argc, char** argv)
     const moveit::core::JointModelGroup* joint_model_group = 
         move_group_interface.getCurrentState()->getJointModelGroup(PLANNING_GROUP);
 
+    namespace rvt = rviz_visual_tools;
+    moveit_visual_tools::MoveItVisualTools visual_tools("panda_link0");
+    visual_tools.deleteAllMarkers();
+    visual_tools.loadRemoteControl();
+
     std::vector<geometry_msgs::Pose> waypoints;
+
+    int id = 0;
+    while (ros::ok())
+    {
+      planning_scenes[id](planning_scene_interface, waypoints);
+
+      // move_group_interface.setGoalPositionTolerance(0.00001);
+
+      printPlannerParams(move_group_interface);
+      ROS_INFO("Start Planning!! Press 'next' to change to the next scene");
+      visual_tools.prompt("");
+      id++;
+      if (id == 3)
+      {
+        id = 0;
+      }
+    }
     
-    setupPlanningScene3(planning_scene_interface, waypoints);
+    
+    // setupPlanningScene3(planning_scene_interface, waypoints);
 
-    // move_group_interface.setGoalPositionTolerance(0.00001);
+    // // move_group_interface.setGoalPositionTolerance(0.00001);
 
-    printPlannerParams(move_group_interface);
-    ROS_INFO("Start Planning !!");
+    // printPlannerParams(move_group_interface);
+    // ROS_INFO("Start Planning !!");
 
     ros::waitForShutdown();
     return 0;
