@@ -145,7 +145,7 @@ include_directories(
 add_executable(pick_place_node src/pick_place.cpp)
 add_executable(motion_planning_node src/motion_planning.cpp)
 add_executable(move_group_planning_node src/move_group_planning.cpp)
-
+add_executable(move_group_ps_node src/move_group_ps.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -170,6 +170,11 @@ target_link_libraries(
 
 target_link_libraries(
   move_group_planning_node
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(
+  move_group_ps_node
   ${catkin_LIBRARIES}
 )
 

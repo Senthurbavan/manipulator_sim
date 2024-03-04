@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- MoveIt options -->
+  <arg name="pipeline" default="ompl" doc="Planning pipeline to use with MoveIt"/>
+
+  <!-- Panda options -->
+  <arg name="load_gripper" default="true" />
+  <arg name="transmission" default="effort" />
+
+  <arg name="arm_id" value="panda" />
+
+  <!-- Launch MoveIt -->
+  <include file="$(dirname)/moveit.launch" pass_all_args="true">
+    <!-- robot_description is loaded by gazebo.launch, to enable Gazebo features -->
+    <arg name="load_robot_description" value="true" />
+    <!-- MoveItSimpleControllerManager provides ros_control's JointTrajectory controllers
+         as well as GripperCommand actions -->
+    <arg name="moveit_controller_manager" value="fake" />
+  </include>
+
+
+  <node name="move_group_ps" pkg="manipulator_sim" type="move_group_ps_node" respawn="false" output="screen">
+  </node>
+
+</launch>
