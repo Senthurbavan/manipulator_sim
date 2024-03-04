@@ -223,7 +223,7 @@ void setupPlanningScene2(moveit::planning_interface::PlanningSceneInterface& psi
                               std::vector<geometry_msgs::Pose>& waypoints)
 {
   std::vector<moveit_msgs::CollisionObject> collision_objects;
-  collision_objects.resize(4);
+  collision_objects.resize(8);
 
   collision_objects[0].id = "box_front";
   collision_objects[0].header.frame_id = "panda_link0";
@@ -244,25 +244,26 @@ void setupPlanningScene2(moveit::planning_interface::PlanningSceneInterface& psi
   collision_objects[0].operation = collision_objects[0].ADD;
 
 
-  collision_objects[1].id = "box_left";
+  collision_objects[1].id = "box_back";
   collision_objects[1].header.frame_id = "panda_link0";
 
   collision_objects[1].primitives.resize(1);
   collision_objects[1].primitives[0].type = collision_objects[0].primitives[0].BOX;
   collision_objects[1].primitives[0].dimensions.resize(3);
-  collision_objects[1].primitives[0].dimensions[0] = 0.36; //0.4 - 2*0.02
-  collision_objects[1].primitives[0].dimensions[1] = 0.02;
+  collision_objects[1].primitives[0].dimensions[0] = 0.02;
+  collision_objects[1].primitives[0].dimensions[1] = 0.5;
   collision_objects[1].primitives[0].dimensions[2] = 0.3; 
 
   collision_objects[1].primitive_poses.resize(1);
-  collision_objects[1].primitive_poses[0].position.x = 0.59;
-  collision_objects[1].primitive_poses[0].position.y = -0.24;
+  collision_objects[1].primitive_poses[0].position.x = 0.78;
+  collision_objects[1].primitive_poses[0].position.y = 0;
   collision_objects[1].primitive_poses[0].position.z = 0.15;
   collision_objects[1].primitive_poses[0].orientation.w = 1.0;
 
   collision_objects[1].operation = collision_objects[1].ADD;
 
-  collision_objects[2].id = "box_right";
+
+  collision_objects[2].id = "box_left";
   collision_objects[2].header.frame_id = "panda_link0";
 
   collision_objects[2].primitives.resize(1);
@@ -274,29 +275,101 @@ void setupPlanningScene2(moveit::planning_interface::PlanningSceneInterface& psi
 
   collision_objects[2].primitive_poses.resize(1);
   collision_objects[2].primitive_poses[0].position.x = 0.59;
-  collision_objects[2].primitive_poses[0].position.y = 0.24;
+  collision_objects[2].primitive_poses[0].position.y = -0.24;
   collision_objects[2].primitive_poses[0].position.z = 0.15;
   collision_objects[2].primitive_poses[0].orientation.w = 1.0;
 
   collision_objects[2].operation = collision_objects[2].ADD;
 
-  collision_objects[3].id = "shelf_top";
+  collision_objects[3].id = "box_right";
   collision_objects[3].header.frame_id = "panda_link0";
 
   collision_objects[3].primitives.resize(1);
   collision_objects[3].primitives[0].type = collision_objects[0].primitives[0].BOX;
   collision_objects[3].primitives[0].dimensions.resize(3);
-  collision_objects[3].primitives[0].dimensions[0] = 0.5;
-  collision_objects[3].primitives[0].dimensions[1] = 0.3;
-  collision_objects[3].primitives[0].dimensions[2] = 0.02; 
+  collision_objects[3].primitives[0].dimensions[0] = 0.36; //0.4 - 2*0.02
+  collision_objects[3].primitives[0].dimensions[1] = 0.02;
+  collision_objects[3].primitives[0].dimensions[2] = 0.3; 
 
   collision_objects[3].primitive_poses.resize(1);
-  collision_objects[3].primitive_poses[0].position.x = 0.3;
-  collision_objects[3].primitive_poses[0].position.y = 0.75;
-  collision_objects[3].primitive_poses[0].position.z = 0.25;
+  collision_objects[3].primitive_poses[0].position.x = 0.59;
+  collision_objects[3].primitive_poses[0].position.y = 0.24;
+  collision_objects[3].primitive_poses[0].position.z = 0.15;
   collision_objects[3].primitive_poses[0].orientation.w = 1.0;
 
   collision_objects[3].operation = collision_objects[3].ADD;
+
+  collision_objects[4].id = "shelf_top";
+  collision_objects[4].header.frame_id = "panda_link0";
+
+  collision_objects[4].primitives.resize(1);
+  collision_objects[4].primitives[0].type = collision_objects[0].primitives[0].BOX;
+  collision_objects[4].primitives[0].dimensions.resize(3);
+  collision_objects[4].primitives[0].dimensions[0] = 0.5;
+  collision_objects[4].primitives[0].dimensions[1] = 0.3;
+  collision_objects[4].primitives[0].dimensions[2] = 0.02; 
+
+  collision_objects[4].primitive_poses.resize(1);
+  collision_objects[4].primitive_poses[0].position.x = 0.3;
+  collision_objects[4].primitive_poses[0].position.y = 0.75;
+  collision_objects[4].primitive_poses[0].position.z = 0.25;
+  collision_objects[4].primitive_poses[0].orientation.w = 1.0;
+
+  collision_objects[4].operation = collision_objects[4].ADD;
+
+  collision_objects[5].id = "shelf_front";
+  collision_objects[5].header.frame_id = "panda_link0";
+
+  collision_objects[5].primitives.resize(1);
+  collision_objects[5].primitives[0].type = collision_objects[0].primitives[0].BOX;
+  collision_objects[5].primitives[0].dimensions.resize(3);
+  collision_objects[5].primitives[0].dimensions[0] = 0.02;
+  collision_objects[5].primitives[0].dimensions[1] = 0.3;
+  collision_objects[5].primitives[0].dimensions[2] = 0.24; 
+
+  collision_objects[5].primitive_poses.resize(1);
+  collision_objects[5].primitive_poses[0].position.x = 0.06;
+  collision_objects[5].primitive_poses[0].position.y = 0.75;
+  collision_objects[5].primitive_poses[0].position.z = 0.12;
+  collision_objects[5].primitive_poses[0].orientation.w = 1.0;
+
+  collision_objects[5].operation = collision_objects[5].ADD;
+
+  collision_objects[6].id = "shelf_back";
+  collision_objects[6].header.frame_id = "panda_link0";
+
+  collision_objects[6].primitives.resize(1);
+  collision_objects[6].primitives[0].type = collision_objects[0].primitives[0].BOX;
+  collision_objects[6].primitives[0].dimensions.resize(3);
+  collision_objects[6].primitives[0].dimensions[0] = 0.02;
+  collision_objects[6].primitives[0].dimensions[1] = 0.3;
+  collision_objects[6].primitives[0].dimensions[2] = 0.24; 
+
+  collision_objects[6].primitive_poses.resize(1);
+  collision_objects[6].primitive_poses[0].position.x = 0.54;
+  collision_objects[6].primitive_poses[0].position.y = 0.75;
+  collision_objects[6].primitive_poses[0].position.z = 0.12;
+  collision_objects[6].primitive_poses[0].orientation.w = 1.0;
+
+  collision_objects[6].operation = collision_objects[6].ADD;
+
+  collision_objects[7].id = "floor";
+  collision_objects[7].header.frame_id = "panda_link0";
+
+  collision_objects[7].primitives.resize(1);
+  collision_objects[7].primitives[0].type = collision_objects[0].primitives[0].BOX;
+  collision_objects[7].primitives[0].dimensions.resize(3);
+  collision_objects[7].primitives[0].dimensions[0] = 2.0;
+  collision_objects[7].primitives[0].dimensions[1] = 2.0;
+  collision_objects[7].primitives[0].dimensions[2] = 0.01; 
+
+  collision_objects[7].primitive_poses.resize(1);
+  collision_objects[7].primitive_poses[0].position.x = 0.0;
+  collision_objects[7].primitive_poses[0].position.y = 0.0;
+  collision_objects[7].primitive_poses[0].position.z = -0.005;
+  collision_objects[7].primitive_poses[0].orientation.w = 1.0;
+
+  collision_objects[7].operation = collision_objects[7].ADD;
 
   psi.clear();
   psi.addCollisionObjects(collision_objects);

@@ -1,9 +1,6 @@
 <launch>
 
 <node name="move_group_planning" pkg="manipulator_sim" type="move_group_planning_node" respawn="false" output="screen">
-    <param name="goal_x" value="0.5"/>
-    <param name="goal_y" value="0.14"/>
-    <param name="goal_z" value="0.6"/>
 </node>
 
 </launch>
